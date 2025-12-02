@@ -63,6 +63,8 @@ Criar um **sistema completo de apoio ao diagnóstico** composto por:
 -   Implementação de RBAC (admin, médico, auditor)\
 -   Validações contra SQL Injection e entradas malformadas
 
+- ⚠ A chave do .env é a MESMA para todos os alunos, senão ninguém abre nada.
+
 ------------------------------------------------------------------------
 
 ## **Aluno 4 -- Modelo de Dados**
