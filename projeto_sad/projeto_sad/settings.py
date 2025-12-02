@@ -1,34 +1,33 @@
 import base64
-
-"""
-Django settings for projeto_sad project.
-"""
-
 from pathlib import Path
-import os # Importação necessária para MEDIA_ROOT
-
+import os
 from dotenv import load_dotenv
 
+# Carrega variáveis do .env
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# =============================================================
+# SEGURANÇA
+# =============================================================
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-i$-e7w1y#u+_vo!x2d)m&ft)e%xmgy*n_#pu!s_13!+u1kyr_7' 
-# (Mantenha o seu Secret Key gerado)
+# Coloque isto no seu .env:
+# SECRET_KEY="sua_chave_nova_gerada"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY não definida no .env")
+
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
 
-# Application definition
+# =============================================================
+# INSTALLED_APPS
+# =============================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -37,10 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     'nucleo',
-    'simulador',  # adicione esta linha
+    'simulador',
 ]
+
+
+# =============================================================
+# MIDDLEWARE
+# =============================================================
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -52,14 +56,19 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'projeto_sad.urls'
 
-# Configuração Padrão de Templates (Não precisa de alteração)
+
+# =============================================================
+# TEMPLATES (padrão)
+# =============================================================
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], 
-        'APP_DIRS': True, 
+        'DIRS': [],
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -73,8 +82,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'projeto_sad.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# =============================================================
+# DATABASE
+# =============================================================
 
 DATABASES = {
     'default': {
@@ -84,69 +94,59 @@ DATABASES = {
 }
 
 
-# Password validation (Não alteramos)
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# =============================================================
+# AUTH VALIDATION
+# =============================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# =============================================================
+# INTERNACIONALIZAÇÃO
+# =============================================================
 
-LANGUAGE_CODE = 'pt-br' # Mudado para português
-TIME_ZONE = 'America/Sao_Paulo' # Fuso horário do Brasil
-
+LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# =============================================================
+# STATIC / MEDIA
+# =============================================================
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-# ====================================================================
-# CONFIGURAÇÕES ESPECÍFICAS DO PROJETO SAD (RDC 330)
-# ====================================================================
-
-# 1. Configuração para Login (RDC 330 exige login logo na entrada)
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/home/'
-
-# 2. CONFIGURAÇÃO DE ARQUIVOS DE MÍDIA (Uploads de Imagens e PDFs)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-#adicionado chave de segurança
+
+# =============================================================
+# AES-256 — CHAVE DE CRIPTOGRAFIA DOS ARQUIVOS
+# =============================================================
+
 AES_KEY_BASE64 = os.getenv("AES_KEY_BASE64")
 
 if not AES_KEY_BASE64:
     raise RuntimeError("AES_KEY_BASE64 não definida no .env")
 
-AES_KEY = base64.b64decode(AES_KEY_BASE64)
+try:
+    AES_KEY = base64.b64decode(AES_KEY_BASE64)
+except Exception:
+    raise RuntimeError("AES_KEY_BASE64 inválida. Não foi possível decodificar Base64.")
 
 if len(AES_KEY) != 32:
-    raise RuntimeError("AES_KEY precisa ter 32 bytes para AES-256")
+    raise RuntimeError("AES_KEY precisa ter exatamente 32 bytes (256 bits).")
+
+
+# =============================================================
+# DRF
+# =============================================================
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
