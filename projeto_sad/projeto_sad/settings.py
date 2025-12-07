@@ -170,3 +170,24 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     )
 }
+
+# ====================================================================
+# CONFIGURAÇÕES WEKA (Aluno 7 - Especialista WEKA)
+# ====================================================================
+
+# Modo de operação
+WEKA_MODE = 'simulado'  # 'simulado' ou 'real'
+
+# Classes de diagnóstico suportadas
+WEKA_CLASSES = ['NORMAL', 'BENIGNO', 'CISTO', 'MALIGNO']
+
+# Configurações do simulador
+WEKA_SIMULATOR = {
+    'confidence_min': 70,
+    'confidence_max': 95,
+    'processing_time_min': 0.5,
+    'processing_time_max': 2.0,
+}
+
+# Caminhos
+WEKA_MODEL_PATH = 'weka/weka_data/modelo_simulado.model'
