@@ -1,36 +1,19 @@
 """
 URL configuration for projeto_sad project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from django.urls import include   #<< duda  :) 6
-from django.conf import settings    #<< duda  :)  6
-from django.conf.urls.static import static  #<< duda  :) 6
-
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('simulador/', include('simulador.urls')), #<< duda  :) 6
-    path('api/', include('nucleo.urls')),  # LUCIANO aluno 5
-    
+    path('', include('nucleo.urls')),  # App principal
+    path('simulador/', include('simulador.urls')),  # App simulador
+    path('weka/', include('weka.urls')),  # App WEKA do aluno 7
+    path('weka-adapter/', include('weka_adapter.urls')),  # ⭐ SEU APP!
+    path('api/', include('nucleo.urls')),  # API (se necessário)
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-
-
