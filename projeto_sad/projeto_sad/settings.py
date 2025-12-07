@@ -16,19 +16,12 @@ WEKA_SIMULATOR = {
     'processing_time_max': 2.0,
 }
 
-# Caminhos
-WEKA_MODEL_PATH = 'weka/weka_data/modelo_simulado.model'
-
 # ====================================================================
 # CONFIGURAÇÕES WEKA ADAPTER (Aluno 8 - Adaptador WEKA)
 # ====================================================================
 
 # Caminho para o executável Java/WEKA
-# Opções:
-# - 'java' (se WEKA estiver no classpath do sistema)
-# - '/usr/bin/java -cp /caminho/para/weka.jar'
-# - 'docker run ...' para usar container
-WEKA_JAVA_PATH = 'java'  # Ajuste conforme sua instalação
+WEKA_JAVA_PATH = 'java'
 
 # Caminho para o arquivo JAR do WEKA (se não estiver no classpath)
 WEKA_JAR_PATH = os.path.join(BASE_DIR, 'weka', 'weka.jar')
@@ -45,7 +38,7 @@ WEKA_DATA_DIR = os.path.join(BASE_DIR, 'weka', 'weka_data')
 # Criar diretório se não existir
 os.makedirs(WEKA_DATA_DIR, exist_ok=True)
 
-# Caminho completo para o modelo
+# Caminho completo para o modelo ⭐ APENAS ESTA LINHA!
 WEKA_MODEL_PATH = os.path.join(WEKA_DATA_DIR, 'randomforest.model')
 
 # Caminho para arquivos ARFF temporários
@@ -53,11 +46,10 @@ WEKA_TEMP_DIR = os.path.join(BASE_DIR, 'temp', 'weka')
 os.makedirs(WEKA_TEMP_DIR, exist_ok=True)
 
 # Configurações de logging para WEKA
-WEKA_LOG_LEVEL = 'INFO'  # DEBUG, INFO, WARNING, ERROR
+WEKA_LOG_LEVEL = 'INFO'
 
 # Timeout para execução do WEKA (em segundos)
 WEKA_TIMEOUT = 30
 
 # Configuração para modo de desenvolvimento
-# Se True, usa dados simulados quando WEKA não está disponível
 WEKA_FALLBACK_TO_SIMULATED = True
