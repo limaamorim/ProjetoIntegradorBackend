@@ -20,3 +20,30 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
+
+#separação
+
+weka/
+├── __init__.py
+├── admin.py
+├── apps.py        # Importante: Registra o app
+├── models.py
+├── tests.py
+├── views.py
+└── migrations/    # Pasta vazia
+
+
+
+
+
+
+
+
