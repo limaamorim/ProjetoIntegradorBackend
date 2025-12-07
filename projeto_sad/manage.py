@@ -21,6 +21,21 @@ def main():
 if __name__ == '__main__':
     main()
 
+
+
+#separação
+
+weka/
+├── __init__.py
+├── admin.py
+├── apps.py        # Importante: Registra o app
+├── models.py
+├── tests.py
+├── views.py
+└── migrations/    # Pasta vazia
+
+
+
 # 1. Abrir o terminal NA PASTA RAIZ (onde está manage.py)
 cd /caminho/para/seu/projeto
 
