@@ -1,6 +1,6 @@
 ## Guia para Consumo da API 
 
-# Este guia foi desenvolvido principalmente para o aluno 9, que segundo as diretrizes do trabalho, será o responsável pelo consumo da API caso haja a necessidade. Entretanto pode ser usado para ajudar qualquer usuário do sistema :)
+# Este guia foi desenvolvido principalmente para os alunos, que segundo as diretrizes do trabalho, serão responsáveis pelo consumo da API caso haja a necessidade. Entretanto pode ser usado para ajudar qualquer usuário do sistema :)
 
 A API do Simulador foi feita para você consumir dados gerados automaticamente.
 
@@ -12,32 +12,67 @@ A API já retorna tudo em JSON, sem precisar configurar nada.
 A API do Simulador foi construída para ser simples de usar, mesmo para quem nunca consumiu uma API antes.
 Abaixo está o passo a passo REAL do que fazer.
 
-## 1. Endpoints disponíveis
->>  Gerar uma nova simulação (cria e devolve um paciente fake + imagem)
 
-Método: GET
-URL completa (local):
+
+## RESUMO DE TODAS AS ROTAS DA API DO SIMULADOR 
+
+# Gerar uma simulação fake (1 registro)
+
+Cria uma simulação fake, salva no banco e retorna os dados em JSON.
+
+GET /simulador/gerar/
+
+
+Exemplo em ambiente local:
 
 http://127.0.0.1:8000/simulador/gerar/
 
->> Listar todas as simulações já criadas
+# Listar todas as simulações
 
-Método: GET
-URL:
+Retorna uma lista com todas as simulações já geradas e salvas no banco.
+
+GET /simulador/listar/
+
+
+Exemplo em ambiente local:
 
 http://127.0.0.1:8000/simulador/listar/
 
->> Detalhar uma simulação específica
+# Detalhar uma simulação específica
 
-Método: GET
-URL:
+Retorna os dados completos de uma simulação específica, identificada pelo ID.
 
-http://127.0.0.1:8000/simulador/detalhar/<id>/
+GET /simulador/detalhar/<id>/
 
 
-Exemplo real com ID 5:
+Exemplo em ambiente local:
 
-http://127.0.0.1:8000/simulador/detalhar/5/
+http://127.0.0.1:8000/simulador/detalhar/46/
+
+# Gerar lote de simulações (10 registros)
+
+Gera automaticamente 10 simulações fake, salva todas no banco e retorna o lote em JSON.
+
+GET /simulador/gerar_lote/
+
+
+Exemplo em ambiente local:
+
+http://127.0.0.1:8000/simulador/gerar_lote/
+
+# Gerar lote em formato ARFF
+
+Gera um lote de simulações fake e exporta automaticamente um arquivo .arff, pronto para uso em ferramentas de machine learning (ex: WEKA).
+
+O arquivo é baixado diretamente pelo navegador.
+
+GET /simulador/lote_arff/
+
+
+Exemplo em ambiente local:
+
+http://127.0.0.1:8000/simulador/lote_arff/
+
 
 ## 2. Formatado em JSON automaticamente
 

@@ -6,9 +6,8 @@ Olá :)
 Este módulo faz parte do Projeto Integrador, onde cada aluno ficou responsável por um componente da aplicação clínica.
 O Aluno 6 é responsável pelo Simulador de Dados: gerar pacientes falsos, associar imagens e disponibilizar tudo por meio de uma API REST.
 
-O objetivo é fornecer ao Aluno 9 uma fonte de dados realista, seja no modo simulado (fake) ou real (via WEKA).
-No caso desta parte, a API oferece dados simulados para serem usados em testes ou apresentações evitando
-usar dados de pacientes reais.
+O objetivo é fornecer aos alunos 7 e 8 dados brutos para que possam ser processados para que o Aluno 9 tenha uma fonte de dados realista, seja no modo simulado (fake) ou real (via WEKA).
+No caso desta parte, a API oferece dados simulados que podem servir para aprendizado de máquina ou para serem usados em testes e apresentações evitando usar dados de pacientes reais.
 
 ## Funcionalidades Principais
 
@@ -25,10 +24,9 @@ O módulo Simulador tem 3 grandes funções:
 
 Gerar simulações automáticas (nome, idade, sintomas, diagnóstico fake, confiança, imagem aleatória)
 
-Salvar tudo no banco de dados SQLite, sem interferir nos dados do CRUD,onde neste exercício acadêmico representam os 
-dados reais dos pacientes 
+Salvar tudo no banco de dados SQLite, sem interferir nos dados do CRUD,onde neste exercício acadêmico representam os dados reais dos pacientes 
 
-Fornecer uma API REST limpa e funcional, para consumo pelo Aluno 9 ou outro aluno responsável 
+Fornecer uma API REST limpa e funcional, para consumo dos alunos responsável 
 
 ## Como rodar o projeto
 
@@ -113,30 +111,64 @@ Exemplo de retorno:
 }
 
 
-## Endpoints REST Disponíveis
+## RESUMO DE TODAS AS ROTAS DA API DO SIMULADOR (endpoints disponíveis) 
 
-# Gerar simulação
+# Gerar uma simulação fake (1 registro)
 
-GET ou POST /simulador/gerar/
+Cria uma simulação fake, salva no banco e retorna os dados em JSON.
 
-Gera automaticamente 1 paciente fake e retorna o JSON completo.
+GET /simulador/gerar/
+
+
+Exemplo em ambiente local:
+
+http://127.0.0.1:8000/simulador/gerar/
 
 # Listar todas as simulações
 
+Retorna uma lista com todas as simulações já geradas e salvas no banco.
+
 GET /simulador/listar/
 
-Retorna TODOS os registros.
+
+Exemplo em ambiente local:
+
+http://127.0.0.1:8000/simulador/listar/
 
 # Detalhar uma simulação específica
 
+Retorna os dados completos de uma simulação específica, identificada pelo ID.
+
 GET /simulador/detalhar/<id>/
 
-Exemplo : detalhando apenas a simulação 26 -
 
-GET /simulador/detalhar/26/
+Exemplo em ambiente local:
 
-Se o ID existir >> retorna o registro
-Se não existir  >> retorna erro amigável
+http://127.0.0.1:8000/simulador/detalhar/46/
+
+# Gerar lote de simulações (10 registros)
+
+Gera automaticamente 10 simulações fake, salva todas no banco e retorna o lote em JSON.
+
+GET /simulador/gerar_lote/
+
+
+Exemplo em ambiente local:
+
+http://127.0.0.1:8000/simulador/gerar_lote/
+
+# Gerar lote em formato ARFF
+
+Gera um lote de simulações fake e exporta automaticamente um arquivo .arff, pronto para uso em ferramentas de machine learning (ex: WEKA).
+
+O arquivo é baixado diretamente pelo navegador.
+
+GET /simulador/lote_arff/
+
+
+Exemplo em ambiente local:
+
+http://127.0.0.1:8000/simulador/lote_arff/
 
 
 
@@ -172,6 +204,7 @@ SQLite
 
 Pillow (para imagens)
 
+
 ## Limitações conhecidas
 
 A API não faz validações de dados enviados manualmente (não é necessário para este projeto).
@@ -181,6 +214,7 @@ Apenas GET/POST foram implementados conforme exigido.
 O sistema usa SQLite por compatibilidade com o projeto base.
 
 A API serve apenas dados simulados; não faz análise real.
+
 
 ## Observações importantes sobre o Django e uso da aplicação
 
@@ -272,7 +306,7 @@ O módulo do Aluno 6 está:
 
 V Alinhado ao PDF da professora
 V Integrado ao banco
-V Oferecendo endpoints REST prontos para o Aluno 9 ( ou para quem precise)
-v Entregue com clareza e organização profissional
+V Oferecendo endpoints REST prontos 
+v Entregue com clareza e organização 
 
 
