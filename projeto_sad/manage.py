@@ -20,28 +20,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-#separação
-
-weka/
-├── __init__.py
-├── admin.py
-├── apps.py        # Importante: Registra o app
-├── models.py
-├── tests.py
-├── views.py
-└── migrations/    # Pasta vazia
-
-
-
-# 1. Abrir o terminal NA PASTA RAIZ (onde está manage.py)
-cd /caminho/para/seu/projeto
-
-# 2. Criar o app Django chamado "weka"
-python manage.py startapp weka
-
-# 3. Verificar se a pasta foi criada:
-ls -la weka/
-#mostrar: __init__.py, admin.py, apps.py, models.py, tests.py, views.py
