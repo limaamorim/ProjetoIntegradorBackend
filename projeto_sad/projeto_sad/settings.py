@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     # REMOVIDO: 'encrypted_fields' (Para evitar erro C++)
     'simulador',  #<<  app duda :)
     'rest_framework',  #<<  app duda :)
+    'weka',
+    'weka_adapter'
 
 ]
 

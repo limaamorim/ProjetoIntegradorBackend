@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .services import gerar_simulacao_fake
@@ -105,3 +106,81 @@ def detalhar_simulacao(request, id):
     }
 
     return Response(dados)
+
+@api_view(["GET", "POST"])
+def gerar_lote(request):
+    """
+    Gera 10 simulações e retorna uma lista JSON.
+    """
+    simulacoes = []
+
+    for _ in range(10):
+        dados = gerar_simulacao_fake()
+
+        nova = Simulacao(
+            nome=dados["nome"],
+            cpf_fake=dados["cpf_fake"],
+            idade=dados["idade"],
+            sintomas=dados["sintomas"],
+            diagnostico_fake=dados["diagnostico_fake"],
+            confianca=dados["confianca"],
+            modo=dados["modo"],
+        )
+        nova.save()
+
+        # imagem
+        if dados["imagem_path"]:
+            caminho = os.path.join(settings.MEDIA_ROOT, dados["imagem_path"])
+            with open(caminho, "rb") as f:
+                nova.imagem_escolhida.save(os.path.basename(caminho), File(f), save=True)
+
+        simulacoes.append({
+            "id": nova.id,
+            "nome": nova.nome,
+            "cpf_fake": nova.cpf_fake,
+            "idade": nova.idade,
+            "sintomas": nova.sintomas,
+            "diagnostico_fake": nova.diagnostico_fake,
+            "confianca": nova.confianca,
+            "imagem_url": nova.imagem_escolhida.url if nova.imagem_escolhida else None,
+        })
+
+    return Response(simulacoes)
+
+@api_view(["GET"])
+def gerar_lote_arff(request):
+    """
+    Gera 10 simulações e devolve um arquivo ARFF para download.
+    """
+
+    # gerar lote
+    lote = []
+    for _ in range(10):
+        dados = gerar_simulacao_fake()
+        lote.append(dados)
+
+    # montar ARFF
+    arff = "@RELATION simulacoes\n\n"
+    arff += "@ATTRIBUTE nome STRING\n"
+    arff += "@ATTRIBUTE cpf STRING\n"
+    arff += "@ATTRIBUTE idade NUMERIC\n"
+    arff += "@ATTRIBUTE sintomas STRING\n"
+    arff += "@ATTRIBUTE diagnostico STRING\n"
+    arff += "@ATTRIBUTE confianca NUMERIC\n\n"
+    arff += "@DATA\n"
+
+    for item in lote:
+        linha = "'{}','{}',{},'{}','{}',{}\n".format(
+            item["nome"],
+            item["cpf_fake"],
+            item["idade"],
+            item["sintomas"].replace("'", " "),
+            item["diagnostico_fake"],
+            item["confianca"],
+        )
+        arff += linha
+
+    # preparar arquivo para download
+    response = HttpResponse(arff, content_type="text/arff")
+    response["Content-Disposition"] = 'attachment; filename="lote.arff"'
+    return response

@@ -7,20 +7,63 @@ fake = Faker('pt_BR')
 
 def gerar_simulacao_fake():
     """
-    Gera um dicionário com todos os dados necessários
-    para criar uma simulação.
-    A API vai usar isso.
-    O botão no admin também vai usar isso.
+    Gera um dicionário coerente para criar uma simulação.
+    Mantém exatamente os mesmos campos usados no projeto,
+    sem modificar models, serializers ou views de terceiros.
     """
 
     nome = fake.name()
     cpf = fake.cpf()
     idade = random.randint(18, 90)
-    sintomas = fake.text(max_nb_chars=200)
-    diagnostico = random.choice(['Benigno', 'Maligno', 'Cisto', 'Saudável'])
-    confianca = round(random.uniform(0.50, 0.99), 3)
 
-    # Escolhe imagem aleatória
+    # ----------------------------------------
+    # 1) SINTOMAS COERENTES
+    # ----------------------------------------
+    sintomas_possiveis = [
+        "dor localizada",
+        "aumento de temperatura",
+        "região rígida",
+        "formigamento leve",
+        "sensibilidade ao toque",
+        "desconforto mamário",
+        "sem sintomas aparentes"
+    ]
+
+    # Seleciona de 1 a 3 sintomas
+    sintomas_escolhidos = random.sample(sintomas_possiveis, k=random.randint(1, 3))
+
+    # Garantir que "sem sintomas aparentes" NÃO venha junto de outros sintomas
+    if "sem sintomas aparentes" in sintomas_escolhidos and len(sintomas_escolhidos) > 1:
+        sintomas_escolhidos = ["sem sintomas aparentes"]
+
+    sintomas = ", ".join(sintomas_escolhidos)
+
+    # ----------------------------------------
+    # 2) DIAGNÓSTICO FAKE COERENTE
+    # ----------------------------------------
+    if sintomas == "sem sintomas aparentes":
+        diagnostico = "SAUDÁVEL"
+
+    elif "aumento de temperatura" in sintomas and "região rígida" in sintomas:
+        diagnostico = "MALIGNO"
+
+    elif "região rígida" in sintomas or "sensibilidade ao toque" in sintomas:
+        diagnostico = "BENIGNO"
+
+    elif "dor localizada" in sintomas:
+        diagnostico = "CISTO"
+
+    else:
+        diagnostico = "INCONCLUSIVO"
+
+    # ----------------------------------------
+    # 3) CONFIANÇA — AJUSTADA PARA 0.70 A 0.99 (como pedido)
+    # ----------------------------------------
+    confianca = round(random.uniform(0.70, 0.99), 3)
+
+    # ----------------------------------------
+    # 4) IMAGEM
+    # ----------------------------------------
     pasta_imagens = os.path.join(settings.MEDIA_ROOT, 'termografias')
     imagens = [
         f for f in os.listdir(pasta_imagens)
