@@ -142,7 +142,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ====================================================================
 
 # 1. Configuração para Login (RDC 330 exige login logo na entrada)
-LOGIN_URL = '/'
+LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/home/'
 
 # 2. CONFIGURAÇÃO DE ARQUIVOS DE MÍDIA (Uploads de Imagens e PDFs)

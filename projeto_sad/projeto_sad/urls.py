@@ -1,6 +1,7 @@
 """
 URL configuração do projeto_sad.
 """
+from django.views.generic import RedirectView
 from django.contrib import admin
 from django.urls import path
 from django.urls import include   #<< duda  :) 6
@@ -10,6 +11,7 @@ from django.conf.urls.static import static  #<< duda  :) 6
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', RedirectView.as_view(url='/admin/'), name='index'),
     
     # Rotas existentes
     path('simulador/', include('simulador.urls')), #<< duda  :) 6
