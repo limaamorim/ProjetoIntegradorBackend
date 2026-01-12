@@ -12,6 +12,12 @@ from .models import (
     AnaliseImagem, Laudo, HistoricoLaudo, LaudoImpressao, LogAuditoria
 )
 
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
+
+# remove o admin padrão
+admin.site.unregister(User)
+
 # --- 1. CONFIGURAÇÕES ESPECIAIS (CLASSES ADMIN CUSTOMIZADAS) ---
 
 class LogAuditoriaAdmin(admin.ModelAdmin):
@@ -97,11 +103,12 @@ class LaudoAdmin(admin.ModelAdmin):
         return "-"
     profissional_nome.short_description = "Profissional Responsável"
 
+    
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        return qs.filter(usuario_responsavel=request.user)
+        return qs.filter(usuario_responsavel__usuario=request.user)
 
     # [ALUNO 10] Implementação do Preview do Laudo na Interface
     def link_pdf(self, obj):
@@ -197,6 +204,31 @@ class PacienteAdmin(admin.ModelAdmin):
         }),
     )
 
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    list_display = (
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'crm',
+        'is_staff',
+    )
+
+    search_fields = (
+        'username',
+        'first_name',
+        'last_name',
+        'email',
+    )
+
+    def crm(self, obj):
+        try:
+            return obj.perfilusuario.registro_profissional
+        except PerfilUsuario.DoesNotExist:
+            return "-"
+    crm.short_description = "CRM"
 
 # --- 2. REGISTRO DOS MODELOS NO SISTEMA ---
 
