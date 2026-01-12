@@ -35,10 +35,73 @@ class LaudoAdmin(admin.ModelAdmin):
     """
     [ALUNOS 9 e 10] Configuração do Laudo: Layout Dinâmico, Assinatura e Exportação.
     """
-    list_display = ('id', 'analise', 'usuario_responsavel', 'data_hora_emissao', 'link_pdf')
-    
+
+    # Colunas da listagem
+    list_display = ('id', 'get_paciente', 'analise_info', 'profissional_nome', 'data_hora_emissao', 'link_pdf')
+
+    # Filtros laterais
+    list_filter = (
+        'data_hora_emissao',
+    )
+
+    # Campo de busca
+    search_fields = (
+    'codigo_verificacao',
+    )
+
+    date_hierarchy = 'data_hora_emissao'
+    ordering = ('-data_hora_emissao',)
+
     # [ALUNO 10] Bloqueia upload manual. O sistema gera o arquivo automaticamente.
     readonly_fields = ('caminho_pdf', 'data_hora_emissao')
+
+    # Organização do formulário
+    fieldsets = (
+        ('Informações do Laudo', {
+            'fields': (
+                'analise',
+                'usuario_responsavel',
+                'codigo_verificacao',
+            )
+        }),
+        ('Arquivo PDF', {
+            'fields': (
+                'caminho_pdf',
+            )
+        }),
+        ('Informações do Sistema', {
+            'fields': (
+                'data_hora_emissao',
+            ),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def analise_info(self, obj):
+        try:
+            return f"Análise #{obj.analise.id}"
+        except AttributeError:
+            return "-"
+    analise_info.short_description = "Análise de Origem"
+    
+    def get_paciente(self, obj):
+        try:
+            return obj.analise.imagem.paciente.nome_completo
+        except AttributeError:
+            return "-"
+    get_paciente.short_description = "Paciente"
+
+    def profissional_nome(self, obj):
+        if obj.usuario_responsavel and obj.usuario_responsavel.usuario:
+            return obj.usuario_responsavel.usuario.get_full_name() or obj.usuario_responsavel.usuario.username
+        return "-"
+    profissional_nome.short_description = "Profissional Responsável"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(usuario_responsavel=request.user)
 
     # [ALUNO 10] Implementação do Preview do Laudo na Interface
     def link_pdf(self, obj):
@@ -101,9 +164,7 @@ class PacienteAdmin(admin.ModelAdmin):
 
     # Campo de busca
     search_fields = (
-        'nome_completo',
-        'cpf',
-        'uuid_paciente'
+        'uuid_paciente',
     )
 
     # Campos somente leitura
