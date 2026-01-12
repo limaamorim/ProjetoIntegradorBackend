@@ -18,6 +18,9 @@ from django.contrib.auth.models import User
 # remove o admin padrão
 admin.site.unregister(User)
 
+admin.site.site_title = 'Administração do Sistema' 
+admin.site.index_title = 'Bem-vindo ao Painel de Controle' 
+
 # --- 1. CONFIGURAÇÕES ESPECIAIS (CLASSES ADMIN CUSTOMIZADAS) ---
 
 class LogAuditoriaAdmin(admin.ModelAdmin):
