@@ -82,11 +82,67 @@ class LaudoAdmin(admin.ModelAdmin):
         return redirect('..')
 
 
+class PacienteAdmin(admin.ModelAdmin):
+    #Configuração do Django Admin para o modelo Paciente
+
+    # Colunas da listagem
+    list_display = (
+        'nome_completo',
+        'cpf',
+        'data_nascimento',
+        'data_cadastro',
+        'uuid_paciente'
+    )
+
+    # Filtros laterais
+    list_filter = (
+        'data_cadastro',
+    )
+
+    # Campo de busca
+    search_fields = (
+        'nome_completo',
+        'cpf',
+        'uuid_paciente'
+    )
+
+    # Campos somente leitura
+    readonly_fields = (
+        'uuid_paciente',
+        'data_cadastro',
+    )
+
+    # Organização do formulário
+    fieldsets = (
+        ('Informações Básicas do Paciente', {
+            'fields': (
+                'nome_completo',
+                'cpf',
+                'data_nascimento',
+            )
+        }),
+        ('Informações Clínicas', {
+            'fields': (
+                'sintomas',
+                'possivel_diagnostico',
+            )
+        }),
+        ('Informações do Sistema', {
+            'fields': (
+                'uuid_paciente',
+                'data_cadastro',
+            ),
+            'classes': ('collapse',)
+        }),
+    )
+
+
 # --- 2. REGISTRO DOS MODELOS NO SISTEMA ---
 
 # Modelos com inteligência administrativa personalizada
 admin.site.register(LogAuditoria, LogAuditoriaAdmin)
 admin.site.register(Laudo, LaudoAdmin)
+admin.site.register(Paciente, PacienteAdmin)
 
 # Modelos com registro simples (Interface padrão Django)
 admin.site.register([
@@ -94,7 +150,6 @@ admin.site.register([
     HistoricoLaudo,
     ImagemExame,
     Instituicao,
-    Paciente,
     PerfilUsuario,
     LaudoImpressao
 ])
