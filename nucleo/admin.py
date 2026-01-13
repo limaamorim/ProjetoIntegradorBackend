@@ -2,6 +2,11 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import path
 from django.shortcuts import redirect
+from django.http import HttpResponse
+from io import BytesIO
+import zipfile
+import os
+from django.utils import timezone
 
 # [ALUNO 10] Importação do serviço de geração de relatórios
 from weka_adapter.services.report_generator import ReportService
@@ -44,6 +49,8 @@ class LaudoAdmin(admin.ModelAdmin):
     """
     [ALUNOS 9 e 10] Configuração do Laudo: Layout Dinâmico, Assinatura e Exportação.
     """
+
+    actions = ['gerar_pdfs_zip']
 
     # Colunas da listagem
     list_display = ('id', 'get_paciente', 'analise_info', 'profissional_nome', 'data_hora_emissao', 'link_pdf')
@@ -153,6 +160,92 @@ class LaudoAdmin(admin.ModelAdmin):
         
         self.message_user(request, f"Sucesso: PDF do Laudo #{laudo_id} foi gerado e assinado digitalmente.")
         return redirect('..')
+    
+    # Gera laudos massivamente
+    def gerar_pdfs_zip(self, request, queryset):
+        """
+        Ação em massa: gera PDFs dos laudos selecionados, devolve um ZIP e inclui
+        um relatorio_exportacao.txt com detalhes (sucessos/falhas).
+        Registra log de auditoria ao final.
+        """
+
+        # RBAC: usuário comum só exporta laudos do próprio PerfilUsuario->User
+        if not request.user.is_superuser:
+            queryset = queryset.filter(usuario_responsavel__usuario=request.user)
+
+        total_selecionados = queryset.count()
+        exportados = 0
+        falhas = 0
+
+        # Relatório em texto (vai virar um .txt dentro do ZIP)
+        linhas_relatorio = []
+        linhas_relatorio.append("RELATÓRIO DE EXPORTAÇÃO DE LAUDOS (ZIP)")
+        linhas_relatorio.append(f"Data/Hora: {timezone.now().strftime('%Y-%m-%d %H:%M:%S %Z')}")
+        linhas_relatorio.append(f"Usuário: {request.user.username}")
+        linhas_relatorio.append(f"IP: {request.META.get('REMOTE_ADDR')}")
+        linhas_relatorio.append(f"Total selecionados (após RBAC): {total_selecionados}")
+        linhas_relatorio.append("-" * 60)
+
+        zip_buffer = BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for laudo in queryset:
+                codigo = getattr(laudo, "codigo_verificacao", None) or f"id_{laudo.id}"
+
+                try:
+                    # Gera PDF se não existir
+                    if not laudo.caminho_pdf:
+                        ReportService.gerar_pdf_para_laudo_existente(
+                            laudo_obj=laudo,
+                            usuario_solicitante=request.user,
+                            ip_cliente=request.META.get("REMOTE_ADDR"),
+                        )
+                        laudo.refresh_from_db(fields=["caminho_pdf", "codigo_verificacao"])
+
+                    if not laudo.caminho_pdf:
+                        falhas += 1
+                        linhas_relatorio.append(f"[FALHA] Laudo {codigo}: caminho_pdf vazio após tentativa de geração.")
+                        continue
+
+                    caminho = laudo.caminho_pdf.path
+                    if not os.path.exists(caminho):
+                        falhas += 1
+                        linhas_relatorio.append(f"[FALHA] Laudo {codigo}: arquivo não encontrado em disco ({caminho}).")
+                        continue
+
+                    nome_no_zip = f"laudo_{codigo}.pdf"
+                    zip_file.write(caminho, arcname=nome_no_zip)
+                    exportados += 1
+                    linhas_relatorio.append(f"[OK] Laudo {codigo}: adicionado como {nome_no_zip}")
+
+                except Exception as e:
+                    falhas += 1
+                    linhas_relatorio.append(f"[ERRO] Laudo {codigo}: {type(e).__name__} - {e}")
+
+            linhas_relatorio.append("-" * 60)
+            linhas_relatorio.append(f"Exportados com sucesso: {exportados}")
+            linhas_relatorio.append(f"Falhas: {falhas}")
+
+            # Escreve o TXT dentro do ZIP
+            conteudo_txt = "\n".join(linhas_relatorio)
+            zip_file.writestr("relatorio_exportacao.txt", conteudo_txt)
+
+        # Log de auditoria (um único registro)
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            acao="ACESSO_RELATORIO",  # ou 'EXPORTACAO_LAUDOS' se você adicionar esse tipo no model
+            recurso="Exportação em Massa de Laudos",
+            detalhe=f"Selecionados: {total_selecionados} | Exportados: {exportados} | Falhas: {falhas}",
+            ip_origem=request.META.get("REMOTE_ADDR"),
+        )
+
+        zip_buffer.seek(0)
+        response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
+        response["Content-Disposition"] = 'attachment; filename="laudos_selecionados.zip"'
+        return response
+
+    gerar_pdfs_zip.short_description = "Gerar PDFs (ZIP) + relatório TXT"
+
 
 
 class PacienteAdmin(admin.ModelAdmin):
