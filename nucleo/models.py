@@ -51,6 +51,9 @@ class PerfilUsuario(models.Model):
     
     instituicao = models.ForeignKey(Instituicao, on_delete=models.PROTECT, verbose_name="Instituição de Afiliação") 
 
+    def __str__(self):
+        return f"{self.usuario.get_full_name() or self.usuario.username} ({self.papel})"
+
 # ============================================
 # ALUNO 4 e 5: PACIENTES E DADOS SENSÍVEIS
 # Atende a exigência: "Dados pessoais dos pacientes e UUID"
@@ -182,6 +185,17 @@ class AnaliseImagem(models.Model):
     class Meta:
         verbose_name_plural = "Análises de Imagem"
 
+    def __str__(self):
+        try:
+            paciente = self.imagem.paciente.nome_completo
+        except Exception:
+            paciente = "Paciente desconhecido"
+
+        resultado = self.resultado_classificacao or "Sem resultado"
+
+        return f"Análise #{self.id} - {paciente} ({resultado})"
+
+
 # ============================================
 # ALUNO 10: LAUDOS MÉDICOS
 # ============================================
@@ -201,6 +215,15 @@ class Laudo(models.Model):
     laudo_finalizado = models.BooleanField(default=False, verbose_name="Finalizado/Bloqueado")
     codigo_verificacao = models.CharField(max_length=50, unique=True) 
 
+    def __str__(self):
+        # usa código de verificação (se existir) e paciente (se der)
+        codigo = getattr(self, "codigo_verificacao", None) or f"ID {self.id}"
+        try:
+            paciente = self.analise.imagem.paciente.nome_completo
+            return f"Laudo {codigo} - {paciente}"
+        except Exception:
+            return f"Laudo {codigo}"
+
 # ============================================
 # ALUNO 12: VERSIONAMENTO DE DOCUMENTOS
 # ============================================
@@ -215,6 +238,20 @@ class HistoricoLaudo(models.Model):
     data_hora_alteracao = models.DateTimeField(auto_now_add=True)
     texto_anterior = models.TextField()
     ip_alteracao = models.CharField(max_length=45)
+
+    def __str__(self):
+        codigo = getattr(self.laudo, "codigo_verificacao", None) or f"id {self.laudo_id}"
+        try:
+            usuario = (
+                self.usuario_responsavel.usuario.get_full_name()
+                or self.usuario_responsavel.usuario.username
+            )
+        except Exception:
+            usuario = "Usuário desconhecido"
+
+        data = self.data_hora_alteracao.strftime("%d/%m/%Y %H:%M")
+
+        return f"Histórico do Laudo {codigo} - {usuario} em {data}"
         
 class LaudoImpressao(models.Model):
     laudo = models.ForeignKey(Laudo, on_delete=models.CASCADE)
@@ -222,6 +259,16 @@ class LaudoImpressao(models.Model):
     data_hora_impressao = models.DateTimeField(auto_now_add=True)
     ip_origem = models.CharField(max_length=45)
     local_impressao = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        codigo = getattr(self.laudo, "codigo_verificacao", None) or f"id {self.laudo_id}"
+        usuario = self.usuario.get_full_name() or self.usuario.username
+        data = self.data_hora_impressao.strftime("%d/%m/%Y %H:%M")
+
+        if self.local_impressao:
+            return f"Impressão do Laudo {codigo} - {usuario} em {data} ({self.local_impressao})"
+
+        return f"Impressão do Laudo {codigo} - {usuario} em {data}"
 
 # ============================================
 # ALUNO 2: LOGS DE AUDITORIA E CONFORMIDADE
