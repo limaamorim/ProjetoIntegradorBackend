@@ -71,28 +71,6 @@ class LaudoAdmin(admin.ModelAdmin):
     # [ALUNO 10] Bloqueia upload manual. O sistema gera o arquivo automaticamente.
     readonly_fields = ('caminho_pdf', 'data_hora_emissao')
 
-    # Organização do formulário
-    fieldsets = (
-        ('Informações do Laudo', {
-            'fields': (
-                'analise',
-                'usuario_responsavel',
-                'codigo_verificacao',
-            )
-        }),
-        ('Arquivo PDF', {
-            'fields': (
-                'caminho_pdf',
-            )
-        }),
-        ('Informações do Sistema', {
-            'fields': (
-                'data_hora_emissao',
-            ),
-            'classes': ('collapse',)
-        }),
-    )
-
     def analise_info(self, obj):
         try:
             return f"Análise #{obj.analise.id}"
