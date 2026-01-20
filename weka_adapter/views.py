@@ -18,6 +18,29 @@ def classificar_imagem(request):
         # Em um cenário real, pegaríamos o ID da imagem enviada no request
         # Aqui pegamos a última imagem apenas para exemplo:
         ultima_imagem = ImagemExame.objects.last()
+
+        if not ultima_imagem:
+            audit_log(
+                request=request,
+                acao="ERRO_SISTEMA",
+                recurso="AnaliseImagem",
+                detalhe="Nenhuma ImagemExame encontrada para classificar.",
+            )
+            return Response({"erro": "Nenhuma imagem disponível para classificar."}, status=400)
+
+        # ✅ evita o IntegrityError do OneToOne
+        if AnaliseImagem.objects.filter(imagem=ultima_imagem).exists():
+            audit_log(
+                request=request,
+                acao="ERRO_SISTEMA",
+                recurso="AnaliseImagem",
+                detalhe=f"Tentativa de classificar novamente imagem_id={ultima_imagem.id} (já possui análise).",
+            )
+            return Response(
+                {"erro": "Esta imagem já possui uma análise registrada."},
+                status=409
+            )
+
         perfil_medico = PerfilUsuario.objects.get(usuario=request.user)
 
         # Log de solicitação
