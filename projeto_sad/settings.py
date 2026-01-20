@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # SEU APP: 'nucleo' (Obrigatório)
-    'nucleo',
+    'nucleo.apps.NucleoConfig',
     # REMOVIDO: 'encrypted_fields' (Para evitar erro C++)
     'simulador',  #<<  app duda :)
     'rest_framework',  #<<  app duda :)
