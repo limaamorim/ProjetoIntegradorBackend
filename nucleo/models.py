@@ -261,7 +261,11 @@ class LaudoImpressao(models.Model):
     local_impressao = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        pass
+        try:
+            codigo = self.laudo.codigo_verificacao
+        except Exception:
+            codigo = f"laudo_id={self.laudo_id}"
+        return f"Impressão do Laudo {codigo} em {self.data_hora_impressao:%d/%m/%Y %H:%M}"
 
 # ============================================
 # ALUNO 2: LOGS DE AUDITORIA E CONFORMIDADE
