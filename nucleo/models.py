@@ -261,14 +261,7 @@ class LaudoImpressao(models.Model):
     local_impressao = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        codigo = getattr(self.laudo, "codigo_verificacao", None) or f"id {self.laudo_id}"
-        usuario = self.usuario.get_full_name() or self.usuario.username
-        data = self.data_hora_impressao.strftime("%d/%m/%Y %H:%M")
-
-        if self.local_impressao:
-            return f"Impressão do Laudo {codigo} - {usuario} em {data} ({self.local_impressao})"
-
-        return f"Impressão do Laudo {codigo} - {usuario} em {data}"
+        pass
 
 # ============================================
 # ALUNO 2: LOGS DE AUDITORIA E CONFORMIDADE

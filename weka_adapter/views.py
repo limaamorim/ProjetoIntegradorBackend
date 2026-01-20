@@ -32,7 +32,7 @@ def classificar_imagem(request):
         analise = AnaliseImagem.objects.create(
             imagem=ultima_imagem,
             usuario_solicitante=request.user,
-            resultado_classificacao=resultado_ia['classe'],
+            resultado_classificacao=resultado_ia['classificacao'],
             score_confianca=resultado_ia['confianca'],
             modelo_versao="Weka J48 v1.0",
             hash_imagem="sha256_exemplo"
@@ -70,5 +70,4 @@ def classificar_imagem(request):
             recurso="AnaliseImagem",
             detalhe=str(e),
         )
-        raise
         return Response({"erro": str(e)}, status=500)
