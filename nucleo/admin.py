@@ -7,6 +7,7 @@ from io import BytesIO
 import zipfile
 import os
 from django.utils import timezone
+from nucleo.auditoria import audit_log
 
 # [ALUNO 10] Importação do serviço de geração de relatórios
 from weka_adapter.services.report_generator import ReportService
@@ -135,9 +136,27 @@ class LaudoAdmin(admin.ModelAdmin):
             usuario_solicitante=request.user, 
             ip_cliente=request.META.get('REMOTE_ADDR')
         )
+
+        audit_log(
+            request=request,
+            acao="LAUDO_IMPRESSO",
+            recurso="PDF Laudo",
+            detalhe=f"laudo_id={laudo_id} codigo={getattr(laudo,'codigo_verificacao',None)}",
+        )
         
         self.message_user(request, f"Sucesso: PDF do Laudo #{laudo_id} foi gerado e assinado digitalmente.")
         return redirect('..')
+    
+    def save_model(self, request, obj, form, change):
+        is_create = obj.pk is None
+        super().save_model(request, obj, form, change)
+
+        audit_log(
+            request=request,
+            acao="LAUDO_GERADO" if is_create else "LAUDO_ALTERADO",
+            recurso="Laudo",
+            detalhe=f"id={obj.id} codigo={getattr(obj,'codigo_verificacao',None)}",
+        )
     
     # Gera laudos massivamente
     def gerar_pdfs_zip(self, request, queryset):
