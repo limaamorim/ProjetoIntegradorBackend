@@ -279,12 +279,21 @@ class LogAuditoria(models.Model):
         ('LOGIN_SUCESSO', 'Login Bem-Sucedido'),
         ('LOGIN_FALHA', 'Tentativa de Login Falha'), # Detecção de Brute-force
         ('LOGOUT', 'Logout'),
+
+        # Paciente
+        ('PACIENTE_CRIADO', 'Paciente Criado'),
+        ('PACIENTE_ATUALIZADO', 'Paciente Atualizado'),
+        ('PACIENTE_EXCLUIDO', 'Paciente Excluído'),
+
         ('UPLOAD_IMAGEM', 'Upload de Imagem de Exame'),
+
         ('ANALISE_SOLICITADA', 'Solicitação de Análise IA'),
         ('ANALISE_CONCLUIDA', 'Análise IA Concluída'),
+
         ('LAUDO_GERADO', 'Geração de Laudo'),
         ('LAUDO_IMPRESSO', 'Laudo Impresso'),
         ('LAUDO_ALTERADO', 'Laudo Alterado'),
+
         ('ERRO_SISTEMA', 'Erro Crítico do Sistema'),
         ('ACESSO_RELATORIO', 'Acesso a Relatório/Auditoria'),
     )
