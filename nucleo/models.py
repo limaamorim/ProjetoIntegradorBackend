@@ -69,7 +69,7 @@ class Paciente(models.Model):
     
     # Em produção, converter para EncryptedCharField (AES-256) via biblioteca django-fernet-fields
     nome_completo = EncryptedCharField(max_length=150, verbose_name="Nome Completo") 
-    data_nascimento = EncryptedCharField(null=True, blank=True, verbose_name="Data de Nascimento")
+    data_nascimento = models.DateField(null=True, blank=True, verbose_name="Data de Nascimento", help_text="Formato: dd/mm/aaaa")
     
     data_cadastro = models.DateTimeField(auto_now_add=True)
     
