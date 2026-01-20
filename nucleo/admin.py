@@ -29,6 +29,61 @@ admin.site.index_title = 'Bem-vindo ao Painel de Controle'
 
 # --- 1. CONFIGURAÇÕES ESPECIAIS (CLASSES ADMIN CUSTOMIZADAS) ---
 
+class AnaliseImagemAdmin(admin.ModelAdmin):
+    # Listagem
+    list_display = (
+        "id",
+        "paciente_nome",
+        "resultado_classificacao",
+        "score_confianca",
+        "modelo_versao",
+        "data_hora_solicitacao",
+        "data_hora_conclusao",
+        "usuario_solicitante_nome",
+    )
+
+    list_filter = (
+        "resultado_classificacao",
+        "data_hora_solicitacao",
+        "data_hora_conclusao",
+        "modelo_versao",
+    )
+
+    search_fields = (
+        "id",
+        "imagem__paciente__uuid_paciente",
+        "imagem__paciente__nome_completo",
+        "usuario_solicitante__username",
+    )
+
+    date_hierarchy = "data_hora_solicitacao"
+    ordering = ("-data_hora_solicitacao",)
+
+    # def has_add_permission(self, request):
+    #     return False  # análise é gerada pelo sistema
+
+    # def has_change_permission(self, request, obj=None):
+    #     return False # impedir edição manual (integridade)
+
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
+
+    # Campos "humanos" na listagem
+    def paciente_nome(self, obj):
+        try:
+            return obj.imagem.paciente.nome_completo
+        except Exception:
+            return "-"
+    paciente_nome.short_description = "Paciente"
+
+    def usuario_solicitante_nome(self, obj):
+        u = getattr(obj, "usuario_solicitante", None)
+        if not u:
+            return "-"
+        return u.get_full_name() or u.username
+    usuario_solicitante_nome.short_description = "Solicitante"
+
+
 class LogAuditoriaAdmin(admin.ModelAdmin):
     """
     [ALUNO 2] Configuração para o Log de Auditoria: Apenas LEITURA (RDC 330).
@@ -243,6 +298,65 @@ class LaudoAdmin(admin.ModelAdmin):
 
     gerar_pdfs_zip.short_description = "Gerar PDFs (ZIP) + relatório TXT"
 
+class LaudoImpressaoAdmin(admin.ModelAdmin):
+    # Registro de Impressões de Laudos (RDC 330)
+
+    list_display = (
+        'id',
+        'laudo',
+        'usuario',
+        'data_hora_impressao',
+        'ip_origem',
+        'local_impressao',
+    )
+
+    list_filter = (
+        'data_hora_impressao',
+        'usuario',
+    )
+
+    search_fields = (
+        'laudo__codigo_verificacao',
+        'usuario__username',
+        'ip_origem',
+    )
+
+    ordering = ('-data_hora_impressao',)
+
+    readonly_fields = (
+        'laudo',
+        'usuario',
+        'data_hora_impressao',
+        'ip_origem',
+        'local_impressao',
+    )
+
+    fieldsets = (
+        ('Informações da Impressão', {
+            'fields': (
+                'laudo',
+                'usuario',
+                'data_hora_impressao',
+            )
+        }),
+        ('Origem', {
+            'fields': (
+                'ip_origem',
+                'local_impressao',
+            )
+        }),
+    )
+
+    # Bloqueios de escrita (RDC 330)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class PacienteAdmin(admin.ModelAdmin):
@@ -319,6 +433,7 @@ class PacienteAdmin(admin.ModelAdmin):
 
         super().delete_model(request, obj)
 
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = (
@@ -347,18 +462,18 @@ class UserAdmin(BaseUserAdmin):
 # --- 2. REGISTRO DOS MODELOS NO SISTEMA ---
 
 # Modelos com inteligência administrativa personalizada
+admin.site.register(AnaliseImagem, AnaliseImagemAdmin)
 admin.site.register(LogAuditoria, LogAuditoriaAdmin)
 admin.site.register(Laudo, LaudoAdmin)
+admin.site.register(LaudoImpressao, LaudoImpressaoAdmin)
 admin.site.register(Paciente, PacienteAdmin)
 
 # Modelos com registro simples (Interface padrão Django)
 admin.site.register([
-    AnaliseImagem,
     HistoricoLaudo,
     ImagemExame,
     Instituicao,
-    PerfilUsuario,
-    LaudoImpressao
+    PerfilUsuario
 ])
 
 # --- NOTAS DO DESENVOLVIMENTO ---
