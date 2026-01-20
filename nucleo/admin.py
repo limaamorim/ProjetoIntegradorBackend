@@ -230,7 +230,7 @@ class LaudoAdmin(admin.ModelAdmin):
         # Log de auditoria (um único registro)
         LogAuditoria.objects.create(
             usuario=request.user,
-            acao="ACESSO_RELATORIO",  # ou 'EXPORTACAO_LAUDOS' se você adicionar esse tipo no model
+            acao="LAUDO_IMPRESSO",  # ou 'EXPORTACAO_LAUDOS' se você adicionar esse tipo no model
             recurso="Exportação em Massa de Laudos",
             detalhe=f"Selecionados: {total_selecionados} | Exportados: {exportados} | Falhas: {falhas}",
             ip_origem=request.META.get("REMOTE_ADDR"),
@@ -297,6 +297,27 @@ class PacienteAdmin(admin.ModelAdmin):
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+        audit_log(
+            request=request,
+            acao="PACIENTE_ATUALIZADO" if change else "PACIENTE_CRIADO",
+            recurso="Paciente",
+            detalhe=f"paciente_uuid={obj.uuid_paciente}",
+        )
+
+    def delete_model(self, request, obj):
+        uuid_val = obj.uuid_paciente
+
+        audit_log(
+            request=request,
+            acao="PACIENTE_EXCLUIDO",
+            recurso="Paciente",
+            detalhe=f"paciente_uuid={uuid_val}",
+        )
+
+        super().delete_model(request, obj)
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
