@@ -160,7 +160,152 @@ class TestModelsBase(TestCase, FactoryMixin):
         self.assertIn("Maria", str(paciente))
 
 
+class TestImagemAnaliseLaudo(TestCase, FactoryMixin):
+    """
+    Testes de cadeia principal:
+    Paciente -> ImagemExame -> AnaliseImagem -> Laudo
+    """
 
+    def test_imagem_exame_str(self):
+        user = self.criar_user(username="tecnico1")
+        inst = self.criar_instituicao()
+        paciente = self.criar_paciente()
+
+        img = self.criar_imagem_exame(paciente=paciente, user=user, instituicao=inst)
+
+        # __str__ deve ser informativo (Paciente + tipo_imagem)
+        texto = str(img)
+        self.assertIn("Imagem de", texto)
+        self.assertIn("Maria", texto)
+        self.assertIn("Exame Real", texto)
+
+        # data_upload auto_now_add deve preencher
+        self.assertIsNotNone(img.data_upload)
+
+    def test_analise_imagem_cria_e_one_to_one(self):
+        user = self.criar_user(username="medico1")
+        inst = self.criar_instituicao()
+        paciente = self.criar_paciente()
+        img = self.criar_imagem_exame(paciente=paciente, user=user, instituicao=inst)
+
+        analise1 = self.criar_analise(imagem=img, user=user, resultado="Benigno")
+
+        # Verifica vínculo 1-para-1
+        self.assertEqual(analise1.imagem, img)
+
+        # data_hora_solicitacao auto_now_add deve preencher
+        self.assertIsNotNone(analise1.data_hora_solicitacao)
+
+        # __str__ não deve ser "object"
+        self.assertIn("Análise", str(analise1))
+
+        # Tentar criar outra AnaliseImagem para a mesma imagem deve falhar
+        # pois imagem é OneToOneField (UNIQUE)
+        with self.assertRaises(IntegrityError):
+            self.criar_analise(imagem=img, user=user, resultado="Maligno")
+
+    def test_laudo_cria_e_one_to_one_com_analise(self):
+        user = self.criar_user(username="medico1")
+        inst = self.criar_instituicao()
+        perfil = self.criar_perfil(user=user, instituicao=inst, papel="MEDICO")
+
+        paciente = self.criar_paciente()
+        img = self.criar_imagem_exame(paciente=paciente, user=user, instituicao=inst)
+        analise = self.criar_analise(imagem=img, user=user, resultado="Cisto")
+
+        laudo1 = self.criar_laudo(analise=analise, perfil=perfil, codigo="COD-LAUDO-1")
+
+        # Verifica vínculo
+        self.assertEqual(laudo1.analise, analise)
+        self.assertEqual(laudo1.usuario_responsavel, perfil)
+
+        # auto_now_add
+        self.assertIsNotNone(laudo1.data_hora_emissao)
+
+        # __str__ deve incluir "Laudo" e o paciente se possível
+        self.assertIn("Laudo", str(laudo1))
+        self.assertIn("Maria", str(laudo1))
+
+        # Tentar criar outro Laudo para a mesma análise deve falhar (OneToOneField)
+        with self.assertRaises(IntegrityError):
+            self.criar_laudo(analise=analise, perfil=perfil, codigo="COD-LAUDO-2")
+
+    def test_codigo_verificacao_unico(self):
+        # Garante que o banco impede códigos duplicados
+        user = self.criar_user(username="medico1")
+        inst = self.criar_instituicao()
+        perfil = self.criar_perfil(user=user, instituicao=inst, papel="MEDICO")
+
+        paciente = self.criar_paciente()
+        img1 = self.criar_imagem_exame(paciente=paciente, user=user, instituicao=inst)
+        analise1 = self.criar_analise(imagem=img1, user=user, resultado="Benigno")
+        self.criar_laudo(analise=analise1, perfil=perfil, codigo="COD-UNICO-1")
+
+        # outra cadeia independente, mas com o mesmo codigo_verificacao: deve falhar
+        img2 = self.criar_imagem_exame(paciente=paciente, user=user, instituicao=inst)
+        analise2 = self.criar_analise(imagem=img2, user=user, resultado="Maligno")
+
+        with self.assertRaises(IntegrityError):
+            self.criar_laudo(analise=analise2, perfil=perfil, codigo="COD-UNICO-1")
+
+
+class TestHistoricoEImpressao(TestCase, FactoryMixin):
+    """
+    Testes para modelos de trilha/registro (versionamento e impressão).
+    """
+
+    def test_historico_laudo_cria_e_str(self):
+        user = self.criar_user(username="medico1")
+        inst = self.criar_instituicao()
+        perfil = self.criar_perfil(user=user, instituicao=inst, papel="MEDICO")
+
+        paciente = self.criar_paciente()
+        img = self.criar_imagem_exame(paciente=paciente, user=user, instituicao=inst)
+        analise = self.criar_analise(imagem=img, user=user, resultado="Saudavel")
+        laudo = self.criar_laudo(analise=analise, perfil=perfil, codigo="COD-HIST-1")
+
+        hist = HistoricoLaudo.objects.create(
+            laudo=laudo,
+            usuario_responsavel=perfil,
+            texto_anterior="Versão anterior",
+            ip_alteracao="127.0.0.1",
+        )
+
+        # auto_now_add
+        self.assertIsNotNone(hist.data_hora_alteracao)
+
+        # __str__ deve ser informativo (Histórico do Laudo + usuário + data)
+        s = str(hist)
+        self.assertIn("Histórico do Laudo", s)
+        self.assertIn("COD-HIST-1", s)
+
+    def test_laudo_impressao_cria_e_str(self):
+        user = self.criar_user(username="medico1")
+        inst = self.criar_instituicao()
+        perfil = self.criar_perfil(user=user, instituicao=inst, papel="MEDICO")
+
+        paciente = self.criar_paciente()
+        img = self.criar_imagem_exame(paciente=paciente, user=user, instituicao=inst)
+        analise = self.criar_analise(imagem=img, user=user, resultado="Benigno")
+        laudo = self.criar_laudo(analise=analise, perfil=perfil, codigo="COD-IMP-1")
+
+        imp = LaudoImpressao.objects.create(
+            laudo=laudo,
+            usuario=user,
+            ip_origem="10.0.0.10",
+            local_impressao="Recepção",
+        )
+
+        # auto_now_add
+        self.assertIsNotNone(imp.data_hora_impressao)
+
+        # __str__ deve incluir impressão e código
+        s = str(imp)
+        self.assertIn("Impressão do Laudo", s)
+        self.assertIn("COD-IMP-1", s)
+
+
+class TestLogAuditoria(TestCase, FactoryMixin):
     """
     Testes para LogAuditoria:
     - cria registro
