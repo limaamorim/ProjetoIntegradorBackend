@@ -15,7 +15,9 @@ Criar um **sistema completo de apoio ao diagnóstico** composto por:
 * ✅ **Integração IA:** Comunicação estruturada com módulo WEKA via **Padrão Adapter**.
 * ✅ **Padronização:** Formatação automática de dados sensíveis (CPF) e conformidade com requisitos da ANVISA.
 * ✅ **Automação:** Ferramentas para geração de lotes de exames para testes de carga.
-* ✅ ** Laudos Automatizados:**  Emissão de documentos PDF auditáveis com validação via QR Code.
+* ✅ **Laudos Automatizados:** Emissão de documentos PDF auditáveis com validação via QR Code.
+* ✅ **Auditoria Total:** Rastreabilidade completa de ações de usuários e versionamento de documentos médicos.
+
 ---
 
 ## 🛡 Tecnologias e Arquitetura
@@ -24,10 +26,9 @@ Criar um **sistema completo de apoio ao diagnóstico** composto por:
 * **Framework:** Django & Django REST Framework
 * **Banco de Dados:** SQLite (Desenvolvimento)
 * **Design Pattern:** Adapter Pattern (Para desacoplamento do módulo de IA)
-* **Segurança:** Sanitização de dados, Hash de senhas e proteção contra CSRF.
-* **Documentação: ReportLab e Pillow (Processamento de imagem em memória)
-
-* **Arquitetura: Monolítica Modular com Design Pattern Adapter.
+* **Segurança:** Criptografia AES-256 GCM, Sanitização de dados, Hash de senhas e proteção contra CSRF.
+* **Documentação:** ReportLab e Pillow (Processamento de imagem e PDF em memória).
+* **Arquitetura:** Monolítica Modular com Design Pattern Adapter.
 
 ---
 
@@ -38,12 +39,12 @@ Criar um **sistema completo de apoio ao diagnóstico** composto por:
 * **Requisitos:** Definição dos requisitos mínimos de segurança, auditoria e criação do checklist de conformidade.
 * **Avaliação:** Análise de critérios para rastreabilidade, integridade, versionamento e registro de IPs.
 
-### 🔹 Aluno 2 — Sistema de Auditoria (Logs)
-* **Logs Estruturados:** Implementação de registros de auditoria detalhados.
-* **Rastreabilidade:** Registro obrigatório no Banco de Dados para eventos de: Login/Logout, operações de escrita/leitura e acesso a dados sensíveis.
+### 🔹 Aluno 2 — Planejamento de Auditoria
+* **Logs Estruturados:** Definição teórica dos registros de auditoria detalhados.
+* **Rastreabilidade:** Especificação dos campos obrigatórios no Banco de Dados para eventos de: Login/Logout, operações de escrita/leitura e acesso a dados sensíveis.
 * **Laudos:** Definição dos parâmetros para geração e impressão de laudos auditáveis.
 
-### 🔹 Aluno 3 — Segurança e Criptografia
+### 🔹 Aluno 3 — Segurança e Criptografia (RBAC)
 * **Proteção de Dados:** Implementação de Criptografia AES para campos sensíveis.
 * **Controle de Acesso (RBAC):** Definição de papéis e permissões (Administrador, Médico, Auditor).
 * **Blindagem:** Implementação de validações de segurança contra SQL Injection e tratamento de entradas malformadas.
@@ -75,12 +76,19 @@ Criar um **sistema completo de apoio ao diagnóstico** composto por:
 * **Refinamento do Adapter:** Otimização da camada de tradução para integração direta com o fluxo de laudos.
 * **Consumo de Diagnósticos:** Lógica para transformar os resultados do motor de IA em dados estruturados para o prontuário.
 
-### 🔹 Aluno 10 — Segurança, Criptografia e Laudos Digitais
+### 🔹 Aluno 10 — Segurança Avançada e Laudos Digitais
 * **Proteção AES-256 GCM:** Implementação de EncryptedStorage e campos criptografados para blindagem de dados e imagens.
 * **Serviço de Laudos (ReportService):** Geração de PDFs com renderização de logos criptografadas.
-* ** Conformidade RDC 330:** Rastreabilidade de acessos, registro de IPs e validação de autenticidade via QR Code.
+* **Conformidade RDC 330:** Rastreabilidade de acessos, registro de IPs e validação de autenticidade via QR Code.
 
+### 🔹 Aluno 11 — Implementação de Logs de Auditoria
+* **Motor de Auditoria:** Desenvolvimento do modelo `LogAuditoria` para persistência de eventos críticos.
+* **Rastreamento de Eventos:** Implementação da captura automática de Login, Logout, Upload de Imagens, Geração de Laudos e Erros de Sistema.
+* **Segurança do Log:** Registro imutável de IP de Origem, Usuário Responsável e Data/Hora exata da ação.
 
+### 🔹 Aluno 12 — Versionamento e Controle de Impressão
+* **Histórico de Laudos:** Implementação do modelo `HistoricoLaudo` que salva versões anteriores do documento sempre que há uma retificação, garantindo a integridade do prontuário.
+* **Rastreabilidade de Impressão:** Desenvolvimento do módulo `LaudoImpressao`, que registra quem imprimiu o documento, quando e a partir de qual estação de trabalho (IP), atendendo aos requisitos de controle de cópias físicas.
 
 ---
 
@@ -94,13 +102,15 @@ projeto_sad/
 │
 ├── projeto_sad/          # Configurações Globais (Settings e URLs)
 │
-├── seguranca/            # Módulo de Proteção (Aluno 10)
-│   ├── crypto_utils.py   # Lógica AES-GCM
-│   └── encrypted_storage.py # Storage de arquivos criptografados
+├── nucleo/               # Core do Sistema (Models, Views, Admin)
+│   ├── models.py         # Classes Principais (Paciente, Laudo, Logs)
+│   ├── seguranca/        # Módulo de Proteção (Aluno 10)
+│   │   ├── crypto_utils.py       # Lógica AES-GCM
+│   │   └── encrypted_storage.py  # Storage de arquivos criptografados
 │
 ├── simulador/            # App Gerador de Exames (Aluno 6)
 │
-├── weka_adapter/         # App Adaptador e Laudos (Alunos 9 e 10)
+├── weka_adapter/         # App Adaptador e Laudos (Alunos 8 e 9)
 │   ├── services/
 │   │   └── report_generator.py # Motor de PDF e Imagem
 │   └── adapters.py       # Padrão Adapter (Tradução IA)
