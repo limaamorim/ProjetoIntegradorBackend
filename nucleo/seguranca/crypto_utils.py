@@ -52,7 +52,11 @@ def decrypt_value(value: str) -> str:
     Descriptografa valores produzidos por encrypt_value.
     
     Espera receber string base64.
+
     """
+    # Se o valor não for texto (ex: é uma Data antiga), devolve ele como string e não tenta descriptografar
+    if value and not isinstance(value, str):
+        return str(value)
     if value is None:
         return None
 

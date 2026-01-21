@@ -3,12 +3,9 @@ from rest_framework.decorators import api_view
 from .adapters import WekaAdapter
 from .services.report_generator import ReportService # Importando o serviço do Aluno 10
 from nucleo.models import PerfilUsuario, AnaliseImagem, ImagemExame # Importando modelos do núcleo
-from nucleo.auditoria import audit_log
-from django.utils import timezone
 
 @api_view(['GET', 'POST'])
 def classificar_imagem(request):
-
     try:
         # 1. Simulação da IA (Código que você já tem)
         adapter = WekaAdapter()
@@ -18,44 +15,13 @@ def classificar_imagem(request):
         # Em um cenário real, pegaríamos o ID da imagem enviada no request
         # Aqui pegamos a última imagem apenas para exemplo:
         ultima_imagem = ImagemExame.objects.last()
-
-        if not ultima_imagem:
-            audit_log(
-                request=request,
-                acao="ERRO_SISTEMA",
-                recurso="AnaliseImagem",
-                detalhe="Nenhuma ImagemExame encontrada para classificar.",
-            )
-            return Response({"erro": "Nenhuma imagem disponível para classificar."}, status=400)
-
-        # ✅ evita o IntegrityError do OneToOne
-        if AnaliseImagem.objects.filter(imagem=ultima_imagem).exists():
-            audit_log(
-                request=request,
-                acao="ERRO_SISTEMA",
-                recurso="AnaliseImagem",
-                detalhe=f"Tentativa de classificar novamente imagem_id={ultima_imagem.id} (já possui análise).",
-            )
-            return Response(
-                {"erro": "Esta imagem já possui uma análise registrada."},
-                status=409
-            )
-
         perfil_medico = PerfilUsuario.objects.get(usuario=request.user)
-
-        # Log de solicitação
-        audit_log(
-            request=request,
-            acao="ANALISE_SOLICITADA",
-            recurso="AnaliseImagem",
-            detalhe=f"imagem_id={ultima_imagem.id}",
-        )
         
         # 3. Criar registro de Análise no Banco
         analise = AnaliseImagem.objects.create(
             imagem=ultima_imagem,
             usuario_solicitante=request.user,
-            resultado_classificacao=resultado_ia['classificacao'],
+            resultado_classificacao=resultado_ia['classe'],
             score_confianca=resultado_ia['confianca'],
             modelo_versao="Weka J48 v1.0",
             hash_imagem="sha256_exemplo"
@@ -69,14 +35,6 @@ def classificar_imagem(request):
             ip_cliente=ip_cliente
         )
 
-        # Log de conclusão
-        audit_log(
-            request=request,
-            acao="ANALISE_CONCLUIDA",
-            recurso="AnaliseImagem",
-            detalhe=f"analise_id={analise.id} resultado={resultado_ia}",
-        )
-
         # Retornamos o resultado da IA e o link para o laudo gerado
         return Response({
             "ia_resultado": resultado_ia,
@@ -85,12 +43,4 @@ def classificar_imagem(request):
         })
 
     except Exception as e:
-
-        # Log de exceção
-        audit_log(
-            request=request,
-            acao="ERRO_SISTEMA",
-            recurso="AnaliseImagem",
-            detalhe=str(e),
-        )
         return Response({"erro": str(e)}, status=500)

@@ -1,29 +1,15 @@
-"""
-Este módulo centraliza toda a lógica de REGISTRO DE AUDITORIA do sistema.
+import logging
 
-Objetivo:
-- Garantir rastreabilidade completa das ações executadas no sistema
-- Garantir a reutilização do código de auditoria
-- Atender aos requisitos de conformidade da RDC 330 / ANVISA
+logger = logging.getLogger(__name__)
 
-Este arquivo NÃO contém regras de negócio, ele registra eventos relevantes de forma padronizada.
-"""
-
-from .models import LogAuditoria
-
-def get_ip(request):
-    if not request:
-        return "0.0.0.0"
-    return request.META.get("REMOTE_ADDR") or "0.0.0.0"
-
-def audit_log(*, request=None, usuario=None, acao, recurso=None, detalhe=None):
-    if usuario is None and request and getattr(request, "user", None) and request.user.is_authenticated:
-        usuario = request.user
-
-    LogAuditoria.objects.create(
-        usuario=usuario,
-        acao=acao,
-        recurso=recurso,
-        detalhe=detalhe,
-        ip_origem=get_ip(request),
-    )
+def audit_log(usuario, acao, detalhes=None):
+    """
+    Registra ações do sistema para auditoria e conformidade (RDC 330).
+    """
+    mensagem = f"AUDITORIA - Usuário: {usuario} | Ação: {acao} | Detalhes: {detalhes}"
+    
+    # Imprime no terminal do servidor
+    print(mensagem)
+    
+    # Opcional: Salvar em arquivo de log ou banco de dados
+    logger.info(mensagem)
